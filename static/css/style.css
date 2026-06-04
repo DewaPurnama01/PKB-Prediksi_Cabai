@@ -40,7 +40,12 @@ body {
     white-space: nowrap;
 }
 
-.brand-icon { font-size: 18px; }
+.brand-logo {
+    height: 28px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+}
 
 .nav-links {
     display: flex;
@@ -331,6 +336,118 @@ tbody tr:hover td { background: #fafafa; }
 
 .naik  { color: #c0392b; font-weight: 600; }
 .turun { color: #27ae60; font-weight: 600; }
+.label-sedang { color: #e67e22; font-weight: 600; }
+.label-rendah { color: #888;    font-weight: 600; }
+
+/* ---- Kalender bulanan ---- */
+.kalender-wrap {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+}
+
+.kalender-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.kalender-judul-bulan {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1a1a1a;
+}
+
+.btn-nav {
+    background: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12.5px;
+    font-family: inherit;
+    color: #555;
+    cursor: pointer;
+}
+
+.btn-nav:hover { background: #f5f5f5; }
+
+.kalender-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+}
+
+.kalender-grid-header span {
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+.kalender-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+
+.kal-sel {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-radius: 6px;
+    color: #333;
+    cursor: default;
+}
+
+.kal-sel:hover:not(.kosong) { background: #f5f5f5; }
+
+.kal-sel.kosong { background: none; }
+
+.kal-sel.hari-ini-sel {
+    background: #fdecea;
+    color: #c0392b;
+    font-weight: 700;
+}
+
+.kal-sel.hariraya-sel {
+    background: #c0392b;
+    color: #fff;
+    font-weight: 700;
+}
+
+.kal-sel.hariraya-sel.hari-ini-sel {
+    background: #a93226;
+    color: #fff;
+    outline: 2px solid #c0392b;
+    outline-offset: 1px;
+}
+
+.kalender-legenda {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #666;
+}
+
+.legenda-kotak {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.legenda-kotak.merah    { background: #c0392b; }
+.legenda-kotak.hari-ini { background: #fdecea; border: 1px solid #f1948a; }
+
+
 
 /* ---- Beranda: Hero banner ---- */
 .hero {

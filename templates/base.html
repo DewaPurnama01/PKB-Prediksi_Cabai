@@ -31,6 +31,7 @@
          * Background: abu muda #f4f5f7
          *
          * File halaman:
+         *   - beranda.html    → halaman utama publik
          *   - dashboard.html  → halaman dashboard data harga
          *   - kalender.html   → kalender hari raya Bali
          *   - login.html      → login admin
@@ -45,7 +46,7 @@
 
     <nav class="navbar">
         <a href="/" class="brand">
-            <span class="brand-icon">🌶</span>
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Prediksi Cabai" class="brand-logo">
             Prediksi Harga Cabai Bali
         </a>
         <ul class="nav-links">
