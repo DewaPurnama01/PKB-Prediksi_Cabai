@@ -332,14 +332,155 @@ tbody tr:hover td { background: #fafafa; }
 .naik  { color: #c0392b; font-weight: 600; }
 .turun { color: #27ae60; font-weight: 600; }
 
+/* ---- Beranda: Hero banner ---- */
+.hero {
+    background: #c0392b;
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 60%, #e67e22 100%);
+    border-radius: 12px;
+    padding: 32px 28px;
+    color: #fff;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.hero-judul {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.hero-sub {
+    font-size: 13px;
+    opacity: 0.82;
+    margin-bottom: 24px;
+}
+
+.hero-harga-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.hero-harga-kotak {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+
+.hero-harga-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    opacity: 0.78;
+    margin-bottom: 5px;
+}
+
+.hero-harga-nilai {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.hero-harga-sat {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 3px;
+}
+
+.tombol-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.tombol-hero:hover { background: rgba(255,255,255,0.28); }
+
+/* ---- Beranda: Kartu fitur ---- */
+.fitur-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.kartu-fitur {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    padding: 20px 18px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.kartu-fitur:hover {
+    border-color: #d5d5d5;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.kartu-fitur-ikon {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.kartu-fitur-judul {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+}
+
+.kartu-fitur-desc {
+    font-size: 12.5px;
+    color: #888;
+    line-height: 1.55;
+    margin-bottom: 14px;
+}
+
+.kartu-fitur-link {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #c0392b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 720px) {
     .stat-row { grid-template-columns: 1fr 1fr; }
     .hasil-filter { grid-template-columns: 1fr; }
     .navbar { gap: 12px; }
+    .fitur-grid { grid-template-columns: 1fr 1fr; }
+    .hero-harga-row { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 480px) {
     .stat-row { grid-template-columns: 1fr; }
     .filter-atas { flex-direction: column; align-items: flex-start; }
+    .fitur-grid { grid-template-columns: 1fr; }
+    .hero-judul { font-size: 19px; }
 }
