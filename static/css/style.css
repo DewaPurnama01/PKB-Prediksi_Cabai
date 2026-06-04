@@ -1,0 +1,345 @@
+/* ============================================================
+   Prediksi Harga Cabai Bali - Stylesheet
+   PKB Tim 2026
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f4f5f7;
+    color: #222;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+/* ---- Navbar ---- */
+.navbar {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 54px;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1a1a1a;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.brand-icon { font-size: 18px; }
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2px;
+    flex: 1;
+}
+
+.nav-links a {
+    display: block;
+    padding: 5px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #555;
+    font-size: 13.5px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.nav-links a:hover { background: #f2f2f2; color: #222; }
+.nav-links a.active { background: #fdecea; color: #c0392b; font-weight: 600; }
+
+.btn-masuk {
+    background: #c0392b;
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.btn-masuk:hover { background: #a93226; }
+
+/* ---- Main & Footer ---- */
+main { min-height: calc(100vh - 100px); }
+
+footer {
+    border-top: 1px solid #e4e4e4;
+    padding: 14px 20px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+}
+
+/* ---- Konten halaman ---- */
+.halaman {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 18px 48px;
+}
+
+.halaman h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 3px;
+}
+
+.halaman .subjudul {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 22px;
+}
+
+/* ---- Kartu statistik ---- */
+.stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.kartu {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    padding: 16px 18px;
+}
+
+.kartu .label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.kartu .nilai {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1;
+}
+
+.kartu .satuan {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+.kartu .status-harga {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dot.normal { background: #e67e22; }
+.dot.tinggi { background: #c0392b; }
+.dot.rendah { background: #27ae60; }
+
+/* ---- Alert ---- */
+.notif {
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    border: 1px solid transparent;
+}
+
+.notif.orange { background: #fff8f0; border-color: #f5cba7; }
+.notif.merah  { background: #fff5f5; border-color: #f1948a; }
+.notif.hijau  { background: #f0faf3; border-color: #82e0aa; }
+
+.notif-icon { font-size: 17px; margin-top: 1px; flex-shrink: 0; }
+.notif-judul { font-weight: 600; margin-bottom: 2px; }
+.notif-isi { color: #555; }
+
+/* ---- Cek harga berdasar tanggal ---- */
+.kotak-filter {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.filter-atas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-judul { font-weight: 600; font-size: 14px; }
+
+.filter-kanan {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+.filter-kanan input[type="date"] {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #222;
+    outline: none;
+}
+
+.filter-kanan input[type="date"]:focus { border-color: #c0392b; }
+
+.tombol-cek {
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tombol-cek:hover { background: #a93226; }
+
+.hasil-filter {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.hasil-item {
+    background: #f8f8f8;
+    border-radius: 8px;
+    padding: 13px 15px;
+}
+
+.hasil-item .label { font-size: 11.5px; color: #999; margin-bottom: 4px; }
+.hasil-item .nilai { font-size: 20px; font-weight: 700; }
+.hasil-item .keterangan { font-size: 12px; color: #888; margin-top: 3px; }
+
+/* ---- Grafik ---- */
+.kotak-grafik {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.grafik-atas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.grafik-judul { font-weight: 600; font-size: 14px; }
+
+.legenda {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    color: #666;
+}
+
+.legenda-item { display: flex; align-items: center; gap: 5px; }
+
+.legenda-warna {
+    width: 10px; height: 3px;
+    border-radius: 2px;
+}
+
+.area-grafik { height: 240px; position: relative; }
+
+/* ---- Tabel prediksi ---- */
+.kotak-tabel {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.tabel-judul {
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid #efefef;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    background: #f9f9f9;
+    padding: 10px 18px;
+    text-align: left;
+    font-size: 11.5px;
+    color: #999;
+    font-weight: 600;
+    border-bottom: 1px solid #efefef;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+tbody td {
+    padding: 12px 18px;
+    font-size: 13.5px;
+    border-bottom: 1px solid #f5f5f5;
+    color: #222;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #fafafa; }
+
+.naik  { color: #c0392b; font-weight: 600; }
+.turun { color: #27ae60; font-weight: 600; }
+
+/* ---- Responsive ---- */
+@media (max-width: 720px) {
+    .stat-row { grid-template-columns: 1fr 1fr; }
+    .hasil-filter { grid-template-columns: 1fr; }
+    .navbar { gap: 12px; }
+}
+
+@media (max-width: 480px) {
+    .stat-row { grid-template-columns: 1fr; }
+    .filter-atas { flex-direction: column; align-items: flex-start; }
+}

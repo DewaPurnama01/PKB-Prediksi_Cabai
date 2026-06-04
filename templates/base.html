@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Prediksi Harga Cabai Bali{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% block extra_head %}{% endblock %}
+
+    {% raw %}
+    <style>
+        /*
+         * base.html - Template utama website Prediksi Harga Cabai Bali
+         * -----------------------------------------------------------------
+         * HALO TEMAN-TEMAN TIM PKB 2026!
+         *
+         * File ini adalah fondasi semua halaman. Jangan ubah navbar-nya ya.
+         * Kalau mau buat halaman baru, cukup tulis:
+         *
+         *   {extends "base.html"}
+         *   {block content}
+         *     ... isi halaman kamu di sini ...
+         *   {endblock}
+         *
+         * Warna utama: merah #c0392b, aksen oranye #e67e22
+         * Background: abu muda #f4f5f7
+         *
+         * File halaman:
+         *   - dashboard.html  → halaman dashboard data harga
+         *   - kalender.html   → kalender hari raya Bali
+         *   - login.html      → login admin
+         *
+         * Semangat ngerjainnya! - Tim Cabai 🌶
+         */
+    </style>
+    {% endraw %}
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <span class="brand-icon">🌶</span>
+            Prediksi Harga Cabai Bali
+        </a>
+        <ul class="nav-links">
+            <li><a href="/" class="{% block nav_beranda %}{% endblock %}">Beranda</a></li>
+            <li><a href="/dashboard" class="{% block nav_dashboard %}{% endblock %}">Dashboard</a></li>
+            <li><a href="/kalender" class="{% block nav_kalender %}{% endblock %}">Kalender Hari Raya</a></li>
+        </ul>
+        <a href="/login" class="btn-masuk">Login Admin</a>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>© 2026 Prediksi Harga Cabai Bali</p>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>
