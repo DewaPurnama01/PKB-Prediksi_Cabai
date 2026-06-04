@@ -14,7 +14,12 @@ except:
 # --- 2. ROUTE FOR FRONTEND (Mengembalikan Halaman HTML) ---
 @app.route('/')
 def home():
-    # Menampilkan halaman utama / dashboard
+    # Menampilkan halaman utama publik
+    return render_template('dashboard.html')
+
+@app.route('/dashboard')
+def dashboard():
+    # Alias untuk dashboard
     return render_template('dashboard.html')
 
 @app.route('/login', methods=['GET', 'POST'])
