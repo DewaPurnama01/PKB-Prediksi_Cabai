@@ -4,12 +4,11 @@
 {% block nav_dashboard %}active{% endblock %}
 
 {% block content %}
+<!-- KONTEN TETAP SAMA SEPERTI MILIK ANDA -->
 <div class="halaman">
-
     <h1>Dashboard Prediksi Harga</h1>
     <p class="subjudul">Data harga cabai rawit dan prediksi 7 hari ke depan.</p>
 
-    <!-- Kartu ringkasan -->
     <div class="stat-row">
         <div class="kartu">
             <div class="label">Harga Hari Ini</div>
@@ -30,7 +29,6 @@
         </div>
     </div>
 
-    <!-- Notifikasi peringatan -->
     <div class="notif orange" id="kotak-notif">
         <div class="notif-icon">⚠️</div>
         <div>
@@ -39,7 +37,6 @@
         </div>
     </div>
 
-    <!-- Cek harga berdasarkan tanggal -->
     <div class="kotak-filter">
         <div class="filter-atas">
             <span class="filter-judul">Cek Harga Berdasarkan Tanggal</span>
@@ -61,19 +58,12 @@
         </div>
     </div>
 
-    <!-- Grafik tren harga -->
     <div class="kotak-grafik">
         <div class="grafik-atas">
             <span class="grafik-judul">Grafik Tren Harga</span>
             <div class="legenda">
-                <div class="legenda-item">
-                    <div class="legenda-warna" style="background:#c0392b;"></div>
-                    Harga Aktual
-                </div>
-                <div class="legenda-item">
-                    <div class="legenda-warna" style="background:#2980b9; height:2px; border-top: 2px dashed #2980b9; background:none;"></div>
-                    Harga Prediksi
-                </div>
+                <div class="legenda-item"><div class="legenda-warna" style="background:#c0392b;"></div>Harga Aktual</div>
+                <div class="legenda-item"><div class="legenda-warna" style="background:#2980b9; height:2px; border-top: 2px dashed #2980b9; background:none;"></div>Harga Prediksi</div>
             </div>
         </div>
         <div class="area-grafik">
@@ -81,7 +71,6 @@
         </div>
     </div>
 
-    <!-- Tabel prediksi 7 hari -->
     <div class="kotak-tabel">
         <div class="tabel-judul">Prediksi Harga 7 Hari Ke Depan</div>
         <table>
@@ -93,37 +82,23 @@
                 </tr>
             </thead>
             <tbody id="isi-tabel">
-                <tr>
-                    <td colspan="3" style="text-align:center; color:#bbb; padding:20px;">
-                        Memuat data...
-                    </td>
-                </tr>
+                <tr><td colspan="3" style="text-align:center; color:#bbb; padding:20px;">Memuat data...</td></tr>
             </tbody>
         </table>
     </div>
-
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-// Data dummy — nanti diganti dengan fetch ke /api/predict
-const HARGA_HARI_INI = 47188;
-const PREDIKSI_BESOK = 49591;
+// INJEKSI AMAN DATA MACHINE LEARNING DARI BACKEND FLASK
+const HARGA_HARI_INI = {{ harga_hari_ini | tojson }};
+const PREDIKSI_BESOK = {{ prediksi_besok | tojson }};
+const DATA_7_HARI     = {{ pred_7 | tojson }};
 
-const DATA_7_HARI = [
-    { tgl: '2026-05-05', harga: 49591 },
-    { tgl: '2026-05-06', harga: 53089 },
-    { tgl: '2026-05-07', harga: 55440 },
-    { tgl: '2026-05-08', harga: 55726 },
-    { tgl: '2026-05-09', harga: 55623 },
-    { tgl: '2026-05-10', harga: 55368 },
-    { tgl: '2026-05-11', harga: 55613 },
-];
-
-const LABEL_GRAFIK   = ['20 Apr','22 Apr','24 Apr','26 Apr','28 Apr','30 Apr','2 Mei','4 Mei','6 Mei','8 Mei','10 Mei'];
-const AKTUAL_GRAFIK  = [52000, 49000, 47500, 48000, 46000, 45500, 44800, 45200, 47100, null, null];
-const PREDIKSI_GRAFIK= [null, null, null, null, null, null, null, 45200, 47100, 49591, 53000];
+const LABEL_GRAFIK    = {{ label_grafik | tojson }};
+const AKTUAL_GRAFIK   = {{ aktual_grafik | tojson }};
+const PREDIKSI_GRAFIK = {{ prediksi_grafik | tojson }};
 
 function rupiah(n) {
     return 'Rp ' + Math.round(n).toLocaleString('id-ID');
@@ -142,7 +117,6 @@ function tglPanjang(str) {
     return hr[d.getDay()] + ', ' + d.getDate() + ' ' + bln[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-// Isi kartu statistik
 function isiKartu() {
     document.getElementById('val-hari-ini').textContent = rupiah(HARGA_HARI_INI);
     document.getElementById('val-besok').textContent    = rupiah(PREDIKSI_BESOK);
@@ -151,10 +125,10 @@ function isiKartu() {
     let dotClass = 'normal', teks = 'Normal', notifClass = 'orange';
     let pesanNotif = 'NORMAL: Harga stabil dengan kenaikan ringan.';
 
-    if (pct > 10) {
+    if (pct > 5) { // Disesuaikan ambangnya menjadi lebih sensitif
         dotClass = 'tinggi'; teks = 'Tinggi'; notifClass = 'merah';
-        pesanNotif = 'TINGGI: Harga diprediksi naik signifikan, harap waspada.';
-    } else if (pct < -10) {
+        pesanNotif = 'TINGGI: Harga diprediksi naik, pelaku UMKM Bali disarankan melakukan restock lebih awal.';
+    } else if (pct < -5) {
         dotClass = 'rendah'; teks = 'Rendah'; notifClass = 'hijau';
         pesanNotif = 'RENDAH: Harga diprediksi turun, kondisi pasar cukup stabil.';
     }
@@ -167,7 +141,6 @@ function isiKartu() {
     notif.className = 'notif ' + notifClass;
 }
 
-// Isi tabel prediksi
 function isiTabel() {
     const tbody = document.getElementById('isi-tabel');
     let html = '';
@@ -189,7 +162,6 @@ function isiTabel() {
     tbody.innerHTML = html;
 }
 
-// Gambar grafik
 let chartObj;
 function gambarGrafik() {
     const ctx = document.getElementById('grafikHarga').getContext('2d');
@@ -208,9 +180,9 @@ function gambarGrafik() {
                     borderWidth: 2,
                     pointRadius: 3,
                     pointBackgroundColor: '#c0392b',
-                    tension: 0.35,
+                    tension: 0.2,
                     fill: true,
-                    spanGaps: false
+                    spanGaps: true
                 },
                 {
                     label: 'Harga Prediksi',
@@ -221,9 +193,9 @@ function gambarGrafik() {
                     borderWidth: 2,
                     pointRadius: 3,
                     pointBackgroundColor: '#2980b9',
-                    tension: 0.35,
+                    tension: 0.2,
                     fill: true,
-                    spanGaps: false
+                    spanGaps: true
                 }
             ]
         },
@@ -242,17 +214,12 @@ function gambarGrafik() {
                 }
             },
             scales: {
-                x: {
-                    grid: { color: '#f0f0f0' },
-                    ticks: { font: { size: 11 }, color: '#bbb' }
-                },
+                x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#999' } },
                 y: {
                     grid: { color: '#f0f0f0' },
                     ticks: {
-                        font: { size: 11 }, color: '#bbb',
-                        callback: function(v) {
-                            return 'Rp ' + (v / 1000).toFixed(0) + 'k';
-                        }
+                        font: { size: 11 }, color: '#999',
+                        callback: function(v) { return 'Rp ' + (v / 1000).toFixed(0) + 'k'; }
                     }
                 }
             }
@@ -260,7 +227,6 @@ function gambarGrafik() {
     });
 }
 
-// Cek harga berdasarkan tanggal
 function cekTanggal() {
     const tgl = document.getElementById('inputTanggal').value;
     if (!tgl) { alert('Pilih dulu tanggalnya.'); return; }
@@ -273,27 +239,19 @@ function cekTanggal() {
 
     if (cocok) {
         document.getElementById('nilai-harga-tanggal').textContent = rupiah(cocok.harga);
-        document.getElementById('tipe-data').textContent = 'Data Prediksi';
+        document.getElementById('tipe-data').textContent = 'Data Prediksi AI';
     } else {
         const today = new Date();
         const pilih = new Date(tgl);
         if (pilih <= today) {
             document.getElementById('nilai-harga-tanggal').textContent = rupiah(HARGA_HARI_INI);
-            document.getElementById('tipe-data').textContent = 'Data Aktual';
+            document.getElementById('tipe-data').textContent = 'Data Aktual Terakhir';
         } else {
             document.getElementById('nilai-harga-tanggal').textContent = 'Tidak tersedia';
-            document.getElementById('tipe-data').textContent = '–';
+            document.getElementById('tipe-data').textContent = 'Di luar jangkauan 7 hari';
         }
     }
 }
-
-// Set tanggal default ke hari ini
-(function() {
-    const d  = new Date();
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    document.getElementById('inputTanggal').value = d.getFullYear() + '-' + mm + '-' + dd;
-})();
 
 window.addEventListener('DOMContentLoaded', function() {
     isiKartu();

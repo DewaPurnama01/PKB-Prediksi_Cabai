@@ -62,10 +62,8 @@
 
 {% block extra_scripts %}
 <script>
-// Isi harga di hero dari data dummy
-// Nanti bisa diganti fetch ke /api/predict
-var HARGA     = 47188;
-var PREDIKSI  = 49591;
+var HARGA     = {{ harga_hari_ini | tojson }};
+var PREDIKSI  = {{ prediksi_besok | tojson }};
 
 function rupiah(n) {
     return 'Rp ' + Math.round(n).toLocaleString('id-ID');
