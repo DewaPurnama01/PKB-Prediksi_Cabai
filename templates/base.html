@@ -1,71 +1,41 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Prediksi Harga Cabai Bali{% endblock %}</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    {% block extra_head %}{% endblock %}
-
-    {% raw %}
-    <style>
-        /*
-         * base.html - Template utama website Prediksi Harga Cabai Bali
-         * -----------------------------------------------------------------
-         * HALO TEMAN-TEMAN TIM PKB 2026!
-         *
-         * File ini adalah fondasi semua halaman. Jangan ubah navbar-nya ya.
-         * Kalau mau buat halaman baru, cukup tulis:
-         *
-         *   {extends "base.html"}
-         *   {block content}
-         *     ... isi halaman kamu di sini ...
-         *   {endblock}
-         *
-         * Warna utama: merah #c0392b, aksen oranye #e67e22
-         * Background: abu muda #f4f5f7
-         *
-         * File halaman:
-         *   - beranda.html    → halaman utama publik
-         *   - dashboard.html  → halaman dashboard data harga
-         *   - kalender.html   → kalender hari raya Bali
-         *   - login.html      → login admin
-         *
-         * Semangat ngerjainnya! - Tim Cabai 🌶
-         */
-    </style>
-    {% endraw %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Prediksi Harga Cabai Bali{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {% block extra_head %}{% endblock %}
 </head>
-
 <body>
-
-    <nav class="navbar">
-        <a href="/" class="brand">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Prediksi Cabai" class="brand-logo">
-            Prediksi Harga Cabai Bali
-        </a>
-        <ul class="nav-links">
-            <li><a href="/" class="{% block nav_beranda %}{% endblock %}">Beranda</a></li>
-            <li><a href="/dashboard" class="{% block nav_dashboard %}{% endblock %}">Dashboard</a></li>
-            <li><a href="/kalender" class="{% block nav_kalender %}{% endblock %}">Kalender Hari Raya</a></li>
-        </ul>
+  <nav class="navbar">
+    <a href="/" class="brand">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="brand-logo">
+      Prediksi Harga Cabai Bali
+    </a>
+    <ul class="nav-links">
+      <li><a href="/" class="{% block nav_beranda %}{% endblock %}">Beranda</a></li>
+      <li><a href="/dashboard" class="{% block nav_dashboard %}{% endblock %}">Dashboard</a></li>
+      <li><a href="/kalender" class="{% block nav_kalender %}{% endblock %}">Kalender Hari Raya</a></li>
+    </ul>
+    <div class="nav-right">
+      {% if session.get('logged_in') %}
+        <span class="badge-admin">Admin</span>
+        <a href="/logout" class="btn-masuk btn-outline">Keluar</a>
+      {% else %}
         <a href="/login" class="btn-masuk">Login Admin</a>
-    </nav>
+      {% endif %}
+    </div>
+  </nav>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+  <main>{% block content %}{% endblock %}</main>
 
-    <footer>
-        <p>© 2026 Prediksi Harga Cabai Bali</p>
-    </footer>
+  <footer>
+    <p>© 2026 Sistem Cerdas Prediksi Harga Cabai Bali – Kelompok 4 TK1 | Universitas Udayana</p>
+  </footer>
 
-    {% block extra_scripts %}{% endblock %}
+  {% block extra_scripts %}{% endblock %}
 </body>
-
 </html>

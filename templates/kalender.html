@@ -1,176 +1,177 @@
 {% extends "base.html" %}
-
 {% block title %}Kalender Hari Raya – Prediksi Harga Cabai Bali{% endblock %}
 {% block nav_kalender %}active{% endblock %}
 
-{% block content %}
-<div class="halaman">
+{% block extra_head %}
+<style>
+/* ── Tabel Hari Raya Sudah Lewat ── */
+.lewat-wrap      { background:#fff; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.lewat-table     { width:100%; border-collapse:collapse; font-size:13px; }
+.lewat-table th  { background:#f7f8fa; padding:11px 16px; text-align:left; font-weight:700;
+                   border-bottom:2px solid var(--border); color:#444; font-size:12px;
+                   letter-spacing:.04em; text-transform:uppercase; }
+.lewat-table td  { padding:10px 16px; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+.lewat-table tbody tr:hover { background:#fafafa; }
+.lewat-table tbody tr:last-child td { border-bottom:none; }
 
-    <h1>Kalender Hari Raya</h1>
-    <p class="subjudul">Hari raya di Bali yang biasanya mempengaruhi harga cabai di pasaran.</p>
+/* Baris pemisah tahun */
+.year-sep td     { background:#2c3e50; color:#fff; font-weight:700; font-size:11px;
+                   letter-spacing:.12em; text-transform:uppercase; padding:6px 16px; }
 
-    <!-- Kalender bulanan -->
-    <div class="kalender-wrap">
-        <div class="kalender-nav">
-            <button onclick="gantibulan(-1)" class="btn-nav" id="btn-bulan-prev">&#8592; Sebelumnya</button>
-            <span class="kalender-judul-bulan" id="judul-bulan">–</span>
-            <button onclick="gantibulan(1)"  class="btn-nav" id="btn-bulan-next">Berikutnya &#8594;</button>
-        </div>
+/* Kolom no urut */
+.col-no          { width:50px; color:#bbb; font-size:12px; text-align:center; }
 
-        <div class="kalender-grid-header">
-            <span>Min</span><span>Sen</span><span>Sel</span>
-            <span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
-        </div>
-        <div class="kalender-grid" id="grid-kalender"></div>
+/* Kolom nama */
+.col-nama        { font-weight:600; color:#1a1a2e; }
+.col-nama-sub    { font-size:11px; color:#999; font-weight:400; margin-top:2px; }
 
-        <div class="kalender-legenda">
-            <span><span class="legenda-kotak merah"></span> Hari Raya</span>
-            <span><span class="legenda-kotak hari-ini"></span> Hari Ini</span>
-        </div>
-    </div>
+/* Kolom tanggal */
+.col-tgl         { width:145px; color:#666; font-size:12.5px; white-space:nowrap; }
 
-    <!-- Daftar hari raya -->
-    <div class="kotak-tabel">
-        <div class="tabel-judul">Daftar Hari Raya Bali 2026</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Tanggal</th>
-                    <th>Nama Hari Raya</th>
-                    <th>Potensi Dampak Harga</th>
-                    <th>Keterangan</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-hariraya"></tbody>
-        </table>
-    </div>
+/* Kolom dampak */
+.col-dampak      { width:130px; }
 
-    <!-- Info singkat -->
-    <div class="notif orange" style="margin-top:0;">
-        <div class="notif-icon">💡</div>
-        <div>
-            <div class="notif-judul">Kenapa hari raya mempengaruhi harga cabai?</div>
-            <div class="notif-isi">
-                Saat hari raya seperti Galungan dan Kuningan, permintaan cabai meningkat
-                karena banyak upacara memasak. Biasanya harga naik 10–30% menjelang hari H.
-            </div>
-        </div>
-    </div>
-
-</div>
+/* Animasi baris masuk */
+.lewat-table tbody tr { transition: background .12s; }
+</style>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-// Data hari raya Bali 2026
-var HARI_RAYA = [
-    { tgl: '2026-01-01', nama: 'Tahun Baru Masehi',    dampak: 'Sedang',  ket: 'Permintaan naik tipis' },
-    { tgl: '2026-01-14', nama: 'Hari Raya Saraswati',  dampak: 'Rendah',  ket: 'Permintaan stabil' },
-    { tgl: '2026-01-28', nama: 'Pagerwesi',             dampak: 'Sedang',  ket: 'Aktivitas upacara meningkat' },
-    { tgl: '2026-01-29', nama: 'Tahun Baru Imlek',     dampak: 'Sedang',  ket: 'Pasar banyak tutup' },
-    { tgl: '2026-03-19', nama: 'Hari Raya Nyepi',      dampak: 'Tinggi',  ket: 'Pasar tutup total, harga naik H-2' },
-    { tgl: '2026-03-20', nama: 'Hari Raya Nyepi (libur)', dampak: 'Tinggi', ket: 'Hari Ogoh-ogoh sebelumnya' },
-    { tgl: '2026-04-15', nama: 'Galungan',              dampak: 'Tinggi',  ket: 'Puncak kebutuhan cabai naik signifikan' },
-    { tgl: '2026-04-22', nama: 'Manis Galungan',        dampak: 'Sedang',  ket: 'Masih dalam rangkaian Galungan' },
-    { tgl: '2026-04-25', nama: 'Kuningan',              dampak: 'Tinggi',  ket: 'Permintaan tinggi, harga masih naik' },
-    { tgl: '2026-05-01', nama: 'Hari Buruh',            dampak: 'Rendah',  ket: 'Pasar sebagian tutup' },
-    { tgl: '2026-05-29', nama: 'Waisak',                dampak: 'Rendah',  ket: 'Dampak kecil di Bali' },
-    { tgl: '2026-06-01', nama: 'Hari Pancasila',        dampak: 'Rendah',  ket: 'Pasar normal' },
-    { tgl: '2026-08-17', nama: 'HUT Kemerdekaan RI',   dampak: 'Sedang',  ket: 'Permintaan naik untuk konsumsi' },
-    { tgl: '2026-10-20', nama: 'Galungan (periode 2)',  dampak: 'Tinggi',  ket: 'Siklus Galungan kedua tahun ini' },
-    { tgl: '2026-10-30', nama: 'Kuningan (periode 2)',  dampak: 'Tinggi',  ket: 'Permintaan cabai meningkat' },
-    { tgl: '2026-12-25', nama: 'Hari Natal',            dampak: 'Sedang',  ket: 'Pasar ramai, harga naik tipis' },
-    { tgl: '2026-12-31', nama: 'Malam Tahun Baru',      dampak: 'Sedang',  ket: 'Konsumsi malam naik' },
-];
+{% block content %}
+<div class="halaman">
+  <h1>Kalender Hari Raya Bali</h1>
+  <p class="subjudul">Pantau jadwal hari raya yang mempengaruhi fluktuasi harga cabai di Bali.</p>
 
-// Warna kelas dampak
-function kelasDampak(d) {
-    if (d === 'Tinggi')  return 'naik';
-    if (d === 'Sedang')  return 'label-sedang';
-    return 'label-rendah';
-}
+  <!-- Info Banner -->
+  <div class="info-banner">
+    <div class="info-banner-ikon">ℹ️</div>
+    <div>
+      <strong>Informasi Penting:</strong>
+      Harga cabai cenderung naik 3–7 hari sebelum hari raya besar.
+      Rencanakan pembelian Anda lebih awal untuk menghindari lonjakan harga.
+    </div>
+  </div>
 
-// Isi tabel
-function isiTabel() {
-    var bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-    var tbody = document.getElementById('tbody-hariraya');
-    var html = '';
-    var today = new Date();
-    today.setHours(0,0,0,0);
+  <!-- ── Hari Raya Mendatang ── -->
+  {% if mendatang %}
+  <h2 class="sek-judul">Hari Raya yang Akan Datang</h2>
+  <div class="hr-grid">
+    {% for item in mendatang %}
+    <div class="hr-kartu level-{{ item.level }}">
+      <div class="hr-kartu-top">
+        <span class="hr-nama">{{ item.nama }}</span>
+        <span class="hr-badge level-badge-{{ item.level }}">
+          {{ 'Sangat Tinggi' if item.level == 'tinggi' else ('Sedang' if item.level == 'sedang' else 'Rendah') }}
+        </span>
+      </div>
+      <div class="hr-tanggal">
+        📅 {{ item.tanggal }}
+        {% if item.hari_lagi == 0 %}
+          <span class="hr-hari-lagi hari-ini">Hari Ini!</span>
+        {% elif item.hari_lagi == 1 %}
+          <span class="hr-hari-lagi mendekat">Besok</span>
+        {% elif item.hari_lagi <= 7 %}
+          <span class="hr-hari-lagi mendekat">{{ item.hari_lagi }} hari lagi</span>
+        {% else %}
+          <span class="hr-hari-lagi normal">{{ item.hari_lagi }} hari lagi</span>
+        {% endif %}
+      </div>
+      <div class="hr-desc">
+        {% if 'galungan' in item.nama.lower() %}
+          Hari raya terpenting di Bali. Lonjakan permintaan untuk persiapan sesajen dan masakan tradisional.
+        {% elif 'nyepi' in item.nama.lower() %}
+          Hari Raya Saka Bali. Distribusi terhenti pada hari H; harga melonjak menjelang hari sebelumnya.
+        {% elif 'kuningan' in item.nama.lower() %}
+          Penutupan perayaan Galungan. Permintaan tetap tinggi untuk upacara penutup.
+        {% else %}
+          Hari raya keagamaan berpengaruh terhadap permintaan bahan makanan di pasar.
+        {% endif %}
+      </div>
+      <div class="hr-estimasi">Estimasi Kenaikan Harga: <strong>{{ item.est_kenaikan }}</strong></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">Tidak ada hari raya mendatang dalam dataset.</div>
+  {% endif %}
 
-    HARI_RAYA.forEach(function(hr) {
-        var d   = new Date(hr.tgl);
-        var tgl = d.getDate() + ' ' + bln[d.getMonth()] + ' ' + d.getFullYear();
-        var cls = kelasDampak(hr.dampak);
-        var lewat = d < today ? 'style="opacity:0.5;"' : '';
+  <!-- ── Hari Raya yang Sudah Lewat ── -->
+  {% if lewat %}
+  <h2 class="sek-judul sek-lewat">
+    Hari Raya yang Sudah Lewat
+    <span style="font-size:12px;font-weight:400;color:#999;margin-left:8px;">{{ lewat|length }} event</span>
+  </h2>
 
-        html += '<tr ' + lewat + '>'
-              + '<td>' + tgl + '</td>'
-              + '<td style="font-weight:600;">' + hr.nama + '</td>'
-              + '<td><span class="' + cls + '">' + hr.dampak + '</span></td>'
-              + '<td style="color:#666;">' + hr.ket + '</td>'
-              + '</tr>';
-    });
+  <div class="lewat-wrap">
+    <table class="lewat-table">
+      <thead>
+        <tr>
+          <th class="col-no">No</th>
+          <th>Nama Hari Raya</th>
+          <th class="col-tgl">Tanggal</th>
+          <th class="col-dampak">Tingkat Dampak</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- set ns = namespace(prev_year='') -%}
+        {%- for item in lewat -%}
+          {%- set thn = item.tanggal[:4] -%}
+          {%- if thn != ns.prev_year -%}
+            {%- set ns.prev_year = thn -%}
+            <tr class="year-sep">
+              <td colspan="4">{{ thn }}</td>
+            </tr>
+          {%- endif -%}
+          <tr>
+            <td class="col-no">{{ loop.index }}</td>
+            <td class="col-nama">
+              {{ item.nama }}
+              {%- if 'galungan' in item.nama.lower() %}
+                <div class="col-nama-sub">Hari Raya Terbesar Bali</div>
+              {%- elif 'nyepi' in item.nama.lower() %}
+                <div class="col-nama-sub">Tahun Baru Saka Hindu</div>
+              {%- elif 'kuningan' in item.nama.lower() %}
+                <div class="col-nama-sub">Penutupan Perayaan Galungan</div>
+              {%- endif %}
+            </td>
+            <td class="col-tgl">
+              📅 {{ item.tanggal }}
+              <div style="font-size:11px;color:#bbb;margin-top:2px;">{{ item.hari_lagi|abs }} hari lalu</div>
+            </td>
+            <td class="col-dampak">
+              <span class="hr-badge level-badge-{{ item.level }}">
+                {{ 'Sangat Tinggi' if item.level == 'tinggi' else ('Sedang' if item.level == 'sedang' else 'Rendah') }}
+              </span>
+              <div style="font-size:11px;color:#999;margin-top:3px;">≈{{ item.est_kenaikan }}</div>
+            </td>
+          </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
-    tbody.innerHTML = html;
-}
+  <!-- ── Panduan Fase ── -->
+  <div class="panduan-fase" style="margin-top:32px;">
+    <h3>Panduan Fase Hari Raya</h3>
+    <div class="fase-grid">
+      <div class="fase-item fase-item-puncak">
+        <div class="fase-judul">Fase H-1 s/d H-2 (Puncak)</div>
+        <p>Fase puncak permintaan termasuk hari Penampahan. Harga biasanya mencapai titik tertinggi.</p>
+      </div>
+      <div class="fase-item fase-item-persiapan">
+        <div class="fase-judul">Fase H-3 s/d H-5 (Persiapan)</div>
+        <p>Fase persiapan awal menjelang hari raya. Permintaan mulai meningkat signifikan.</p>
+      </div>
+      <div class="fase-item fase-item-pasca">
+        <div class="fase-judul">Fase H+1 s/d H+10 (Pasca)</div>
+        <p>Periode setelah hari raya. Harga berangsur turun namun masih di atas rata-rata.</p>
+      </div>
+      <div class="fase-item fase-item-normal">
+        <div class="fase-judul">Fase Normal</div>
+        <p>Hari-hari biasa di luar siklus perayaan. Harga mengikuti pola historis reguler.</p>
+      </div>
+    </div>
+  </div>
 
-// Kalender bulanan
-var bulanAktif = new Date().getMonth();
-var tahunAktif = new Date().getFullYear();
-
-var namaBulan = ['Januari','Februari','Maret','April','Mei','Juni',
-                 'Juli','Agustus','September','Oktober','November','Desember'];
-
-// Kumpulkan semua tanggal hari raya sebagai set string
-var setHariRaya = {};
-HARI_RAYA.forEach(function(hr) { setHariRaya[hr.tgl] = hr.nama; });
-
-function gambarKalender() {
-    document.getElementById('judul-bulan').textContent = namaBulan[bulanAktif] + ' ' + tahunAktif;
-
-    var today   = new Date();
-    var awal    = new Date(tahunAktif, bulanAktif, 1);
-    var hariAwal = awal.getDay(); // 0=Minggu
-    var total   = new Date(tahunAktif, bulanAktif + 1, 0).getDate();
-
-    var grid = document.getElementById('grid-kalender');
-    var html = '';
-
-    // Isi sel kosong sebelum tanggal 1
-    for (var i = 0; i < hariAwal; i++) {
-        html += '<div class="kal-sel kosong"></div>';
-    }
-
-    for (var tgl = 1; tgl <= total; tgl++) {
-        var mm  = String(bulanAktif + 1).padStart(2, '0');
-        var dd  = String(tgl).padStart(2, '0');
-        var key = tahunAktif + '-' + mm + '-' + dd;
-
-        var isToday   = (tgl === today.getDate() && bulanAktif === today.getMonth() && tahunAktif === today.getFullYear());
-        var isHariRaya = setHariRaya.hasOwnProperty(key);
-
-        var kelas = 'kal-sel';
-        if (isToday)    kelas += ' hari-ini-sel';
-        if (isHariRaya) kelas += ' hariraya-sel';
-
-        var tooltip = isHariRaya ? ' title="' + setHariRaya[key] + '"' : '';
-
-        html += '<div class="' + kelas + '"' + tooltip + '>' + tgl + '</div>';
-    }
-
-    grid.innerHTML = html;
-}
-
-function gantibulan(arah) {
-    bulanAktif += arah;
-    if (bulanAktif > 11) { bulanAktif = 0;  tahunAktif++; }
-    if (bulanAktif < 0)  { bulanAktif = 11; tahunAktif--; }
-    gambarKalender();
-}
-
-// Jalankan
-isiTabel();
-gambarKalender();
-</script>
+</div>
 {% endblock %}

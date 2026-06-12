@@ -1,75 +1,72 @@
 {% extends "base.html" %}
-
 {% block title %}Prediksi Harga Cabai Bali{% endblock %}
 {% block nav_beranda %}active{% endblock %}
 
 {% block content %}
 <div class="halaman">
 
-    <!-- Banner utama -->
-    <div class="hero">
-        <div class="hero-judul">Selamat Datang di Sistem Prediksi Harga Cabai</div>
-        <div class="hero-sub">Dapatkan informasi harga cabai terkini dan prediksi akurat untuk UMKM Bali</div>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">🌶 Sistem Cerdas Berbasis AI</div>
+    <h1 class="hero-judul">Prediksi Harga Cabai Rawit Merah Bali</h1>
+    <p class="hero-sub">Platform cerdas untuk membantu UMKM merencanakan pembelian stok<br>dengan prediksi harga berbasis Machine Learning & Kalender Hari Raya.</p>
 
-        <div class="hero-harga-row">
-            <div class="hero-harga-kotak">
-                <div class="hero-harga-label">Harga Hari Ini</div>
-                <div class="hero-harga-nilai" id="hero-harga">Rp –</div>
-                <div class="hero-harga-sat">per kilogram</div>
-            </div>
-            <div class="hero-harga-kotak">
-                <div class="hero-harga-label">Prediksi Besok</div>
-                <div class="hero-harga-nilai" id="hero-prediksi">Rp –</div>
-                <div class="hero-harga-sat">per kilogram</div>
-            </div>
-        </div>
-
-        <a href="/dashboard" class="tombol-hero">Lihat Dashboard Lengkap →</a>
+    <div class="hero-harga-row">
+      <div class="hero-harga-kotak">
+        <div class="hero-harga-label">HARGA HARI INI</div>
+        <div class="hero-harga-nilai">Rp {{ "{:,.0f}".format(harga_hari_ini) }}</div>
+        <div class="hero-harga-sat">per kilogram</div>
+      </div>
+      <div class="hero-sep">→</div>
+      <div class="hero-harga-kotak">
+        <div class="hero-harga-label">PREDIKSI BESOK</div>
+        <div class="hero-harga-nilai">Rp {{ "{:,.0f}".format(prediksi_besok) }}</div>
+        <div class="hero-harga-sat">per kilogram</div>
+      </div>
     </div>
+    <a href="/dashboard" class="tombol-hero">Lihat Dashboard Lengkap →</a>
+  </div>
 
-    <!-- Kartu fitur -->
-    <div class="fitur-grid">
-        <a href="/dashboard" class="kartu-fitur" id="fitur-visualisasi">
-            <div class="kartu-fitur-ikon">📊</div>
-            <div class="kartu-fitur-judul">Visualisasi Data</div>
-            <div class="kartu-fitur-desc">
-                Grafik interaktif menampilkan tren harga historis dan prediksi masa depan.
-            </div>
-            <div class="kartu-fitur-link">Lihat Grafik →</div>
-        </a>
+  <!-- Fitur Grid -->
+  <div class="fitur-grid">
+    <a href="/dashboard" class="kartu-fitur">
+      <div class="kartu-fitur-ikon">📊</div>
+      <div class="kartu-fitur-judul">Visualisasi Data</div>
+      <p class="kartu-fitur-desc">Grafik interaktif tren harga historis dan prediksi 7 hari ke depan.</p>
+      <div class="kartu-fitur-link">Lihat Grafik →</div>
+    </a>
+    <a href="/dashboard" class="kartu-fitur highlight">
+      <div class="kartu-fitur-ikon">🤖</div>
+      <div class="kartu-fitur-judul">Prediksi AI Akurat</div>
+      <p class="kartu-fitur-desc">Pilih model Random Forest atau Linear Regression untuk membandingkan prediksi.</p>
+      <div class="kartu-fitur-link">Lihat Prediksi →</div>
+    </a>
+    <a href="/kalender" class="kartu-fitur">
+      <div class="kartu-fitur-ikon">📅</div>
+      <div class="kartu-fitur-judul">Kalender Hari Raya</div>
+      <p class="kartu-fitur-desc">Pantau hari raya yang mempengaruhi lonjakan permintaan cabai di Bali.</p>
+      <div class="kartu-fitur-link">Lihat Kalender →</div>
+    </a>
+  </div>
 
-        <a href="/dashboard" class="kartu-fitur" id="fitur-prediksi">
-            <div class="kartu-fitur-ikon">📈</div>
-            <div class="kartu-fitur-judul">Prediksi Akurat</div>
-            <div class="kartu-fitur-desc">
-                Sistem AI memprediksi harga cabai hingga 7 hari ke depan dengan analisis mendalam.
-            </div>
-            <div class="kartu-fitur-link">Lihat Prediksi →</div>
-        </a>
-
-        <a href="/kalender" class="kartu-fitur" id="fitur-kalender">
-            <div class="kartu-fitur-ikon">📅</div>
-            <div class="kartu-fitur-judul">Kalender Hari Raya</div>
-            <div class="kartu-fitur-desc">
-                Pantau hari raya yang dapat mempengaruhi lonjakan harga cabai di Bali.
-            </div>
-            <div class="kartu-fitur-link">Lihat Kalender →</div>
-        </a>
+  <!-- Info Metode -->
+  <div class="info-metode">
+    <div class="metode-item">
+      <div class="metode-ikon">🌲</div>
+      <div class="metode-teks">
+        <strong>Random Forest Regressor</strong>
+        <span>Ensemble learning — akurat untuk data dengan variansi tinggi</span>
+      </div>
     </div>
+    <div class="metode-sep">vs</div>
+    <div class="metode-item">
+      <div class="metode-ikon">📈</div>
+      <div class="metode-teks">
+        <strong>Linear Regression</strong>
+        <span>Model baseline — prediksi cepat berbasis hubungan linear</span>
+      </div>
+    </div>
+  </div>
 
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-var HARGA     = {{ harga_hari_ini | tojson }};
-var PREDIKSI  = {{ prediksi_besok | tojson }};
-
-function rupiah(n) {
-    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
-}
-
-document.getElementById('hero-harga').textContent    = rupiah(HARGA);
-document.getElementById('hero-prediksi').textContent = rupiah(PREDIKSI);
-</script>
 {% endblock %}

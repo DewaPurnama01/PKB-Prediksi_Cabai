@@ -1,0 +1,280 @@
+{% extends "admin_base.html" %}
+{% block title %}Kelola Data Hari Raya{% endblock %}
+{% block nav_adm_hari_raya %}active{% endblock %}
+{% block topbar_title %}Kelola Data Hari Raya Bali{% endblock %}
+{% block breadcrumb %}Kelola Data Hari Raya{% endblock %}
+
+{% block content %}
+
+<div class="page-desc">
+  Konfigurasikan kalender hari raya lokal Bali untuk meningkatkan akurasi prediksi fluktuasi harga cabai.
+</div>
+
+<!-- Panel Utama: Tabel CRUD -->
+<div class="adm-panel">
+  <div class="adm-panel-head">
+    <div>
+      <h3>Daftar Event Terdaftar</h3>
+      <span class="badge-info">{{ records|length }} event tercatat</span>
+    </div>
+    <button class="btn-primary" onclick="bukaModalTambah()">+ Tambah Event Baru</button>
+  </div>
+
+  {% if records %}
+  <div class="tabel-scroll">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Event</th>
+          <th>Tanggal</th>
+          <th>Kategori Fase</th>
+          <th>Catatan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-hr">
+        {% for r in records %}
+        <tr id="row-{{ r.id }}">
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ r.nama }}</strong></td>
+          <td>{{ r.tanggal }}</td>
+          <td>
+            <span class="fase-tag fase-tag-{{ r.kategori.split('(')[0].strip().replace(' ','').replace('-','_').lower() }}">
+              {{ r.kategori }}
+            </span>
+          </td>
+          <td class="td-catatan">{{ r.catatan if r.catatan else '–' }}</td>
+          <td>
+            <div class="aksi-group">
+              <button class="btn-edit" onclick="bukaModalEdit({{ r.id }}, '{{ r.nama }}', '{{ r.tanggal }}', '{{ r.kategori }}', '{{ r.catatan }}')">✏ Edit</button>
+              <button class="btn-hapus" onclick="hapusEvent({{ r.id }}, '{{ r.nama }}')">🗑 Hapus</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state-adm">Belum ada data hari raya. Klik "+ Tambah Event Baru" untuk memulai.</div>
+  {% endif %}
+</div>
+
+<!-- Panel Statistik + Panduan -->
+<div class="adm-two-col">
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h3>Statistik Dampak</h3></div>
+    <div class="stat-dampak">
+      <div class="stat-dampak-val">+45.2%</div>
+      <div class="stat-dampak-ket">Rata-rata kenaikan permintaan cabai saat hari raya</div>
+      <div class="stat-dampak-note">Tertinggi pada Galungan &amp; Kuningan</div>
+    </div>
+  </div>
+
+  <div class="adm-panel">
+    <div class="adm-panel-head"><h3>Panduan Kategori Fase</h3></div>
+    <div class="panduan-list">
+      <div class="panduan-item">
+        <span class="fase-tag fase-tag-h_1">H-1 (Puncak)</span>
+        <p>Hari sebelum perayaan — lonjakan permintaan paling tinggi (Penampahan).</p>
+      </div>
+      <div class="panduan-item">
+        <span class="fase-tag fase-tag-h_3">H-3, H-5 (Persiapan)</span>
+        <p>Fase persiapan awal — menyebabkan kenaikan harga menjelang perayaan.</p>
+      </div>
+      <div class="panduan-item">
+        <span class="fase-tag fase-tag-pasca">H+1 (Pasca)</span>
+        <p>Fase setelah perayaan — harga berangsur turun kembali ke normal.</p>
+      </div>
+      <div class="panduan-item">
+        <span class="fase-tag fase-tag-gangguan">H-7 (Gangguan Pasokan)</span>
+        <p>Gangguan distribusi mulai terasa 7 hari sebelum hari raya tertentu.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL TAMBAH ─── -->
+<div id="modal-tambah" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Tambah Event Hari Raya Baru</h3>
+      <button class="modal-close" onclick="tutupModal('modal-tambah')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Nama Event <span class="required">*</span></label>
+      <input type="text" id="add-nama" placeholder="Contoh: Hari Raya Galungan">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tanggal Event <span class="required">*</span></label>
+        <input type="date" id="add-tanggal">
+      </div>
+      <div class="form-group">
+        <label>Kategori Fase</label>
+        <select id="add-kategori">
+          <option value="H-1 (Puncak Permintaan)">H-1 (Puncak Permintaan)</option>
+          <option value="H-3, H-5 (Persiapan)">H-3, H-5 (Persiapan)</option>
+          <option value="H+1 (Pasca Perayaan)">H+1 (Pasca Perayaan)</option>
+          <option value="H-7 (Gangguan Pasokan)">H-7 (Gangguan Pasokan)</option>
+          <option value="Normal">Normal</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Catatan Tambahan</label>
+      <textarea id="add-catatan" placeholder="Masukkan deskripsi atau catatan..." rows="3"></textarea>
+    </div>
+    <div id="add-error" class="modal-error" style="display:none;"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="tutupModal('modal-tambah')">Batal</button>
+      <button class="btn-primary" onclick="simpanTambah()">💾 Simpan Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL EDIT ─── -->
+<div id="modal-edit" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Edit Event Hari Raya</h3>
+      <button class="modal-close" onclick="tutupModal('modal-edit')">✕</button>
+    </div>
+    <input type="hidden" id="edit-id">
+    <div class="form-group">
+      <label>Nama Event <span class="required">*</span></label>
+      <input type="text" id="edit-nama" placeholder="Nama event">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tanggal Event <span class="required">*</span></label>
+        <input type="date" id="edit-tanggal">
+      </div>
+      <div class="form-group">
+        <label>Kategori Fase</label>
+        <select id="edit-kategori">
+          <option value="H-1 (Puncak Permintaan)">H-1 (Puncak Permintaan)</option>
+          <option value="H-3, H-5 (Persiapan)">H-3, H-5 (Persiapan)</option>
+          <option value="H+1 (Pasca Perayaan)">H+1 (Pasca Perayaan)</option>
+          <option value="H-7 (Gangguan Pasokan)">H-7 (Gangguan Pasokan)</option>
+          <option value="Normal">Normal</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Catatan Tambahan</label>
+      <textarea id="edit-catatan" rows="3"></textarea>
+    </div>
+    <div id="edit-error" class="modal-error" style="display:none;"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="tutupModal('modal-edit')">Batal</button>
+      <button class="btn-primary" onclick="simpanEdit()">💾 Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function bukaModalTambah() {
+  document.getElementById('add-nama').value = '';
+  document.getElementById('add-tanggal').value = '';
+  document.getElementById('add-kategori').value = 'H-1 (Puncak Permintaan)';
+  document.getElementById('add-catatan').value = '';
+  document.getElementById('add-error').style.display = 'none';
+  document.getElementById('modal-tambah').style.display = 'flex';
+}
+
+function bukaModalEdit(id, nama, tanggal, kategori, catatan) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-nama').value = nama;
+  document.getElementById('edit-tanggal').value = tanggal;
+  document.getElementById('edit-kategori').value = kategori;
+  document.getElementById('edit-catatan').value = catatan === 'None' ? '' : catatan;
+  document.getElementById('edit-error').style.display = 'none';
+  document.getElementById('modal-edit').style.display = 'flex';
+}
+
+function tutupModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function simpanTambah() {
+  const nama    = document.getElementById('add-nama').value.trim();
+  const tanggal = document.getElementById('add-tanggal').value;
+  const errEl   = document.getElementById('add-error');
+  if (!nama || !tanggal) {
+    errEl.textContent = 'Nama dan tanggal wajib diisi.';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  fetch('/admin/api/hari_raya/tambah', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      nama, tanggal,
+      kategori: document.getElementById('add-kategori').value,
+      catatan:  document.getElementById('add-catatan').value
+    })
+  }).then(r => r.json()).then(d => {
+    if (d.status === 'success') {
+      showToast(d.msg, 'success');
+      tutupModal('modal-tambah');
+      setTimeout(() => location.reload(), 800);
+    } else {
+      errEl.textContent = d.msg; errEl.style.display = 'block';
+    }
+  });
+}
+
+function simpanEdit() {
+  const id      = document.getElementById('edit-id').value;
+  const nama    = document.getElementById('edit-nama').value.trim();
+  const tanggal = document.getElementById('edit-tanggal').value;
+  const errEl   = document.getElementById('edit-error');
+  if (!nama || !tanggal) {
+    errEl.textContent = 'Nama dan tanggal wajib diisi.';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  fetch(`/admin/api/hari_raya/edit/${id}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      nama, tanggal,
+      kategori: document.getElementById('edit-kategori').value,
+      catatan:  document.getElementById('edit-catatan').value
+    })
+  }).then(r => r.json()).then(d => {
+    if (d.status === 'success') {
+      showToast(d.msg, 'success');
+      tutupModal('modal-edit');
+      setTimeout(() => location.reload(), 800);
+    } else {
+      errEl.textContent = d.msg; errEl.style.display = 'block';
+    }
+  });
+}
+
+function hapusEvent(id, nama) {
+  if (!confirm(`Yakin ingin menghapus event "${nama}"?\nTindakan ini tidak dapat dibatalkan.`)) return;
+  fetch(`/admin/api/hari_raya/hapus/${id}`, { method: 'POST' })
+    .then(r => r.json()).then(d => {
+      if (d.status === 'success') {
+        showToast(d.msg, 'success');
+        const row = document.getElementById('row-' + id);
+        if (row) row.remove();
+      } else {
+        showToast('Gagal: ' + d.msg, 'error');
+      }
+    });
+}
+
+// Tutup modal klik di luar
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+});
+</script>
+{% endblock %}

@@ -1,262 +1,269 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard – Prediksi Harga Cabai Bali{% endblock %}
 {% block nav_dashboard %}active{% endblock %}
 
 {% block content %}
-<!-- KONTEN TETAP SAMA SEPERTI MILIK ANDA -->
 <div class="halaman">
-    <h1>Dashboard Prediksi Harga</h1>
-    <p class="subjudul">Data harga cabai rawit dan prediksi 7 hari ke depan.</p>
 
-    <div class="stat-row">
-        <div class="kartu">
-            <div class="label">Harga Hari Ini</div>
-            <div class="nilai" id="val-hari-ini">Rp –</div>
-            <div class="satuan">per kilogram</div>
-        </div>
-        <div class="kartu">
-            <div class="label">Prediksi Besok</div>
-            <div class="nilai" id="val-besok">Rp –</div>
-            <div class="satuan">per kilogram</div>
-        </div>
-        <div class="kartu">
-            <div class="label">Status Harga</div>
-            <div class="status-harga">
-                <span class="dot normal" id="status-dot"></span>
-                <span id="status-teks">Normal</span>
-            </div>
-        </div>
+  <!-- Admin Banner -->
+  {% if is_admin %}
+  <div class="banner-admin">
+    <span>🔐 <strong>Mode Administrator Aktif</strong> — Anda memiliki akses penuh ke sistem.</span>
+    <div class="banner-admin-actions">
+      <button id="btn-retrain" class="btn-sm btn-warning" onclick="retrainModel()">🔄 Latih Ulang Model</button>
+      <a href="/logout" class="btn-sm btn-danger">Keluar</a>
     </div>
+  </div>
+  {% endif %}
 
-    <div class="notif orange" id="kotak-notif">
-        <div class="notif-icon">⚠️</div>
-        <div>
-            <div class="notif-judul">Status Peringatan Dini</div>
-            <div class="notif-isi" id="teks-notif">Memuat...</div>
-        </div>
+  <div class="dashboard-header">
+    <div>
+      <h1>Dashboard Prediksi Harga</h1>
+      <p class="subjudul">Pantau tren harga dan dapatkan prediksi akurat untuk 7 hari ke depan.</p>
     </div>
+    <!-- Model Selector -->
+    <div class="model-selector">
+      <span class="model-label">Model AI:</span>
+      <div class="model-toggle">
+        <a href="/dashboard?model=random_forest"
+           class="model-btn {% if model_type == 'random_forest' %}aktif{% endif %}">
+          🌲 Random Forest
+        </a>
+        <a href="/dashboard?model=linear_regression"
+           class="model-btn {% if model_type == 'linear_regression' %}aktif{% endif %}">
+          📈 Linear Regression
+        </a>
+      </div>
+    </div>
+  </div>
 
-    <div class="kotak-filter">
-        <div class="filter-atas">
-            <span class="filter-judul">Cek Harga Berdasarkan Tanggal</span>
-            <div class="filter-kanan">
-                <span>📅 Pilih Tanggal:</span>
-                <input type="date" id="inputTanggal">
-                <button class="tombol-cek" onclick="cekTanggal()">Cek</button>
-            </div>
-        </div>
-        <div class="hasil-filter" id="hasil-tanggal">
-            <div class="hasil-item">
-                <div class="label" id="label-tanggal">Informasi Harga</div>
-                <div class="nilai" id="nilai-harga-tanggal">–</div>
-            </div>
-            <div class="hasil-item">
-                <div class="label">Tipe Data</div>
-                <div class="nilai" style="font-size:15px;" id="tipe-data">–</div>
-            </div>
-        </div>
+  <!-- Stat Cards -->
+  <div class="stat-row">
+    <div class="kartu">
+      <div class="label">Harga Hari Ini</div>
+      <div class="nilai">Rp {{ "{:,.0f}".format(harga_hari_ini) }}</div>
+      <div class="satuan">per kilogram</div>
     </div>
+    <div class="kartu">
+      <div class="label">Prediksi Besok</div>
+      <div class="nilai">Rp {{ "{:,.0f}".format(prediksi_besok) }}</div>
+      <div class="satuan">per kilogram</div>
+    </div>
+    <div class="kartu">
+      <div class="label">Status Harga</div>
+      <div class="status-harga">
+        {% set selisih = prediksi_besok - harga_hari_ini %}
+        {% set persen  = (selisih / harga_hari_ini * 100) if harga_hari_ini > 0 else 0 %}
+        {% if persen > 10 %}
+          <span class="dot danger"></span><span class="teks-status">⚠ Waspada Naik</span>
+        {% elif persen < -10 %}
+          <span class="dot biru"></span><span class="teks-status">↓ Turun</span>
+        {% else %}
+          <span class="dot normal"></span><span class="teks-status">✓ Normal</span>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Model Metrics Card -->
+    {% if metrics %}
+      {% set m = metrics.get(model_type, {}) %}
+      <div class="kartu kartu-metrik">
+        <div class="label">Akurasi Model ({{ 'RF' if model_type == 'random_forest' else 'LR' }})</div>
+        <div class="metrik-row">
+          <div><span class="metrik-val">{{ m.get('mae', '–') | int | string | replace(',','.')  }}</span><span class="metrik-lbl">MAE</span></div>
+          <div><span class="metrik-val">{{ m.get('mape', '–') }}%</span><span class="metrik-lbl">MAPE</span></div>
+          <div><span class="metrik-val">{{ m.get('r2', '–') }}</span><span class="metrik-lbl">R²</span></div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 
-    <div class="kotak-grafik">
-        <div class="grafik-atas">
-            <span class="grafik-judul">Grafik Tren Harga</span>
-            <div class="legenda">
-                <div class="legenda-item"><div class="legenda-warna" style="background:#c0392b;"></div>Harga Aktual</div>
-                <div class="legenda-item"><div class="legenda-warna" style="background:#2980b9; height:2px; border-top: 2px dashed #2980b9; background:none;"></div>Harga Prediksi</div>
-            </div>
-        </div>
-        <div class="area-grafik">
-            <canvas id="grafikHarga"></canvas>
-        </div>
+  <!-- Notif Box -->
+  <div class="notif orange" id="kotak-notif">
+    <div class="notif-icon">⚠️</div>
+    <div>
+      <div class="notif-judul">Status Peringatan Dini</div>
+      <div class="notif-isi" id="teks-notif">
+        {% set best = pred_7 | sort(attribute='harga') | last %}
+        {% if best and best.fase in ['puncak','persiapan'] %}
+          WASPADA: Terdapat fase hari raya <strong>{{ best.fase|capitalize }}</strong> dalam 7 hari ke depan — potensi lonjakan harga tinggi.
+        {% else %}
+          NORMAL: Harga cenderung stabil. Tidak ada fase hari raya dalam jangkauan prediksi.
+        {% endif %}
+      </div>
     </div>
+  </div>
 
-    <div class="kotak-tabel">
-        <div class="tabel-judul">Prediksi Harga 7 Hari Ke Depan</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Tanggal</th>
-                    <th>Harga Prediksi</th>
-                    <th>Perubahan</th>
-                </tr>
-            </thead>
-            <tbody id="isi-tabel">
-                <tr><td colspan="3" style="text-align:center; color:#bbb; padding:20px;">Memuat data...</td></tr>
-            </tbody>
-        </table>
+  <!-- Cek Harga -->
+  <div class="kotak-filter">
+    <h3>Cek Harga Berdasarkan Tanggal</h3>
+    <div class="filter-row">
+      <input type="date" id="inp-tanggal" class="inp-tgl">
+      <button class="btn-cari" onclick="cekHarga()">Cek Harga</button>
     </div>
+    <div id="hasil-cek" class="hasil-cek" style="display:none;">
+      <div class="label">Informasi Harga:</div>
+      <div id="cek-tanggal" style="font-weight:600;margin:4px 0;"></div>
+      <div class="hasil-row">
+        <div><div class="label">Harga</div><div class="nilai" id="cek-harga">–</div></div>
+        <div><div class="label">Tipe Data</div><div id="cek-tipe" style="font-size:13px;color:#555;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="kotak-grafik">
+    <div class="grafik-header">
+      <h3>Grafik Tren Harga</h3>
+      <div class="grafik-legend">
+        <span class="dot-legend aktual"></span> Harga Aktual
+        <span class="dot-legend prediksi"></span> Harga Prediksi ({{ 'Random Forest' if model_type == 'random_forest' else 'Linear Regression' }})
+      </div>
+    </div>
+    <div class="grafik-wrap">
+      <canvas id="grafikHarga"></canvas>
+    </div>
+  </div>
+
+  <!-- Model Comparison -->
+  {% if metrics %}
+  <div class="kotak-komparasi">
+    <h3>Perbandingan Metrik Model</h3>
+    <table class="tabel-metrik">
+      <thead>
+        <tr><th>Metrik</th><th>🌲 Random Forest</th><th>📈 Linear Regression</th></tr>
+      </thead>
+      <tbody>
+        {% set rf = metrics.get('random_forest', {}) %}
+        {% set lr = metrics.get('linear_regression', {}) %}
+        <tr>
+          <td>MAE (Mean Absolute Error)</td>
+          <td class="{% if rf.get('mae',999) <= lr.get('mae',999) %}best{% endif %}">Rp {{ "{:,.0f}".format(rf.get('mae',0)) }}</td>
+          <td class="{% if lr.get('mae',999) <= rf.get('mae',999) %}best{% endif %}">Rp {{ "{:,.0f}".format(lr.get('mae',0)) }}</td>
+        </tr>
+        <tr>
+          <td>RMSE (Root Mean Square Error)</td>
+          <td class="{% if rf.get('rmse',999) <= lr.get('rmse',999) %}best{% endif %}">Rp {{ "{:,.0f}".format(rf.get('rmse',0)) }}</td>
+          <td class="{% if lr.get('rmse',999) <= rf.get('rmse',999) %}best{% endif %}">Rp {{ "{:,.0f}".format(lr.get('rmse',0)) }}</td>
+        </tr>
+        <tr>
+          <td>MAPE (Mean Absolute % Error)</td>
+          <td class="{% if rf.get('mape',999) <= lr.get('mape',999) %}best{% endif %}">{{ rf.get('mape', '–') }}%</td>
+          <td class="{% if lr.get('mape',999) <= rf.get('mape',999) %}best{% endif %}">{{ lr.get('mape', '–') }}%</td>
+        </tr>
+        <tr>
+          <td>R² (Koefisien Determinasi)</td>
+          <td class="{% if rf.get('r2',0) >= lr.get('r2',0) %}best{% endif %}">{{ rf.get('r2', '–') }}</td>
+          <td class="{% if lr.get('r2',0) >= rf.get('r2',0) %}best{% endif %}">{{ lr.get('r2', '–') }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="ket-best">🏆 Hijau = performa lebih baik</p>
+  </div>
+  {% endif %}
+
+  <!-- Tabel Prediksi 7 Hari -->
+  <div class="kotak-tabel">
+    <h3>Prediksi Harga 7 Hari ke Depan <span class="badge-model">{{ 'Random Forest' if model_type == 'random_forest' else 'Linear Regression' }}</span></h3>
+    <table>
+      <thead>
+        <tr><th>Tanggal</th><th>Harga Prediksi</th><th>Perubahan</th><th>Fase Hari Raya</th></tr>
+      </thead>
+      <tbody>
+        {% for p in pred_7 %}
+          {% set pct = ((p.harga - harga_hari_ini) / harga_hari_ini * 100) if loop.first else
+                       ((p.harga - pred_7[loop.index0-1].harga) / pred_7[loop.index0-1].harga * 100) %}
+          <tr>
+            <td>{{ p.tgl }}</td>
+            <td class="harga-cell">Rp {{ "{:,.0f}".format(p.harga) }}</td>
+            <td class="{% if pct > 0 %}naik{% else %}turun{% endif %}">
+              {% if pct > 0 %}+{% endif %}{{ "%.2f"|format(pct) }}%
+            </td>
+            <td>
+              <span class="fase-badge fase-{{ p.fase }}">{{ p.fase|capitalize }}</span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-// INJEKSI AMAN DATA MACHINE LEARNING DARI BACKEND FLASK
-const HARGA_HARI_INI = {{ harga_hari_ini | tojson }};
-const PREDIKSI_BESOK = {{ prediksi_besok | tojson }};
-const DATA_7_HARI     = {{ pred_7 | tojson }};
+const labelGrafik  = {{ label_grafik | tojson }};
+const aktualData   = {{ aktual_grafik | tojson }};
+const prediksiData = {{ prediksi_grafik | tojson }};
+const modelType    = "{{ model_type }}";
 
-const LABEL_GRAFIK    = {{ label_grafik | tojson }};
-const AKTUAL_GRAFIK   = {{ aktual_grafik | tojson }};
-const PREDIKSI_GRAFIK = {{ prediksi_grafik | tojson }};
-
-function rupiah(n) {
-    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
-}
-
-function tglID(str) {
-    const bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-    const d = new Date(str);
-    return d.getDate() + ' ' + bln[d.getMonth()];
-}
-
-function tglPanjang(str) {
-    const hr  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-    const bln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    const d = new Date(str);
-    return hr[d.getDay()] + ', ' + d.getDate() + ' ' + bln[d.getMonth()] + ' ' + d.getFullYear();
-}
-
-function isiKartu() {
-    document.getElementById('val-hari-ini').textContent = rupiah(HARGA_HARI_INI);
-    document.getElementById('val-besok').textContent    = rupiah(PREDIKSI_BESOK);
-
-    const pct = (PREDIKSI_BESOK - HARGA_HARI_INI) / HARGA_HARI_INI * 100;
-    let dotClass = 'normal', teks = 'Normal', notifClass = 'orange';
-    let pesanNotif = 'NORMAL: Harga stabil dengan kenaikan ringan.';
-
-    if (pct > 5) { // Disesuaikan ambangnya menjadi lebih sensitif
-        dotClass = 'tinggi'; teks = 'Tinggi'; notifClass = 'merah';
-        pesanNotif = 'TINGGI: Harga diprediksi naik, pelaku UMKM Bali disarankan melakukan restock lebih awal.';
-    } else if (pct < -5) {
-        dotClass = 'rendah'; teks = 'Rendah'; notifClass = 'hijau';
-        pesanNotif = 'RENDAH: Harga diprediksi turun, kondisi pasar cukup stabil.';
-    }
-
-    document.getElementById('status-dot').className = 'dot ' + dotClass;
-    document.getElementById('status-teks').textContent = teks;
-    document.getElementById('teks-notif').textContent  = pesanNotif;
-
-    const notif = document.getElementById('kotak-notif');
-    notif.className = 'notif ' + notifClass;
-}
-
-function isiTabel() {
-    const tbody = document.getElementById('isi-tabel');
-    let html = '';
-
-    DATA_7_HARI.forEach(function(item, i) {
-        const prev  = i === 0 ? HARGA_HARI_INI : DATA_7_HARI[i - 1].harga;
-        const pct   = ((item.harga - prev) / prev * 100).toFixed(2);
-        const naik  = pct >= 0;
-        const cls   = naik ? 'naik' : 'turun';
-        const tanda = naik ? '+' : '';
-
-        html += '<tr>'
-              + '<td>' + tglID(item.tgl) + '</td>'
-              + '<td style="font-weight:600;">' + rupiah(item.harga) + '</td>'
-              + '<td class="' + cls + '">' + tanda + pct + '%</td>'
-              + '</tr>';
-    });
-
-    tbody.innerHTML = html;
-}
-
-let chartObj;
-function gambarGrafik() {
-    const ctx = document.getElementById('grafikHarga').getContext('2d');
-    if (chartObj) chartObj.destroy();
-
-    chartObj = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: LABEL_GRAFIK,
-            datasets: [
-                {
-                    label: 'Harga Aktual',
-                    data: AKTUAL_GRAFIK,
-                    borderColor: '#c0392b',
-                    backgroundColor: 'rgba(192,57,43,0.07)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#c0392b',
-                    tension: 0.2,
-                    fill: true,
-                    spanGaps: true
-                },
-                {
-                    label: 'Harga Prediksi',
-                    data: PREDIKSI_GRAFIK,
-                    borderColor: '#2980b9',
-                    borderDash: [5, 4],
-                    backgroundColor: 'rgba(41,128,185,0.05)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#2980b9',
-                    tension: 0.2,
-                    fill: true,
-                    spanGaps: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(c) {
-                            if (c.raw === null) return null;
-                            return c.dataset.label + ': ' + rupiah(c.raw);
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#999' } },
-                y: {
-                    grid: { color: '#f0f0f0' },
-                    ticks: {
-                        font: { size: 11 }, color: '#999',
-                        callback: function(v) { return 'Rp ' + (v / 1000).toFixed(0) + 'k'; }
-                    }
-                }
-            }
+// Render Chart
+const ctx = document.getElementById('grafikHarga');
+if (ctx) {
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labelGrafik,
+      datasets: [
+        { label: 'Harga Aktual', data: aktualData,
+          borderColor: '#c0392b', backgroundColor: 'rgba(192,57,43,0.07)',
+          pointRadius: 3, tension: 0.35, fill: true, spanGaps: true },
+        { label: modelType === 'random_forest' ? 'Prediksi Random Forest' : 'Prediksi Linear Regression',
+          data: prediksiData,
+          borderColor: modelType === 'random_forest' ? '#27ae60' : '#2980b9',
+          backgroundColor: modelType === 'random_forest' ? 'rgba(39,174,96,0.07)' : 'rgba(41,128,185,0.07)',
+          borderDash: [6,3], pointRadius: 4, tension: 0.35, fill: true, spanGaps: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+        y: {
+          grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 },
+            callback: v => 'Rp ' + (v/1000).toFixed(0) + 'K' }
         }
+      }
+    }
+  });
+}
+
+function cekHarga() {
+  const tgl = document.getElementById('inp-tanggal').value;
+  if (!tgl) return;
+  fetch(`/api/cek_harga?tanggal=${tgl}&model=${modelType}`)
+    .then(r => r.json())
+    .then(d => {
+      const box = document.getElementById('hasil-cek');
+      box.style.display = 'block';
+      document.getElementById('cek-tanggal').textContent = 'Informasi Harga: ' + tgl;
+      if (d.status === 'success') {
+        document.getElementById('cek-harga').textContent = 'Rp ' + d.harga.toLocaleString('id-ID', {maximumFractionDigits: 0});
+        document.getElementById('cek-tipe').textContent  = d.tipe;
+      } else {
+        document.getElementById('cek-harga').textContent = 'Tidak ditemukan';
+        document.getElementById('cek-tipe').textContent  = d.tipe || '';
+      }
     });
 }
 
-function cekTanggal() {
-    const tgl = document.getElementById('inputTanggal').value;
-    if (!tgl) { alert('Pilih dulu tanggalnya.'); return; }
-
-    const cocok = DATA_7_HARI.find(function(x) { return x.tgl === tgl; });
-    const div = document.getElementById('hasil-tanggal');
-    div.style.display = 'grid';
-
-    document.getElementById('label-tanggal').textContent = tglPanjang(tgl);
-
-    if (cocok) {
-        document.getElementById('nilai-harga-tanggal').textContent = rupiah(cocok.harga);
-        document.getElementById('tipe-data').textContent = 'Data Prediksi AI';
-    } else {
-        const today = new Date();
-        const pilih = new Date(tgl);
-        if (pilih <= today) {
-            document.getElementById('nilai-harga-tanggal').textContent = rupiah(HARGA_HARI_INI);
-            document.getElementById('tipe-data').textContent = 'Data Aktual Terakhir';
-        } else {
-            document.getElementById('nilai-harga-tanggal').textContent = 'Tidak tersedia';
-            document.getElementById('tipe-data').textContent = 'Di luar jangkauan 7 hari';
-        }
-    }
+function retrainModel() {
+  if (!confirm('Latih ulang kedua model? Proses ini memerlukan waktu beberapa detik.')) return;
+  const btn = document.getElementById('btn-retrain');
+  btn.disabled = true; btn.textContent = '⏳ Melatih...';
+  fetch('/admin/latih', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'success') {
+        alert('✅ Model berhasil dilatih ulang! Halaman akan di-refresh.');
+        location.reload();
+      } else {
+        alert('❌ Error: ' + d.msg);
+        btn.disabled = false; btn.textContent = '🔄 Latih Ulang Model';
+      }
+    });
 }
-
-window.addEventListener('DOMContentLoaded', function() {
-    isiKartu();
-    isiTabel();
-    gambarGrafik();
-});
 </script>
 {% endblock %}

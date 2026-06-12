@@ -1,0 +1,227 @@
+{% extends "admin_base.html" %}
+{% block title %}Dashboard Admin{% endblock %}
+{% block nav_adm_dashboard %}active{% endblock %}
+{% block topbar_title %}Dashboard Admin{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stat Cards Row -->
+<div class="adm-stat-row">
+  {% set rf = metrics.get('random_forest', {}) %}
+  {% set lr = metrics.get('linear_regression', {}) %}
+
+  <div class="adm-card adm-card-accent">
+    <div class="adm-card-icon">📉</div>
+    <div>
+      <div class="adm-card-label">MAE – Random Forest</div>
+      <div class="adm-card-val">{{ "{:,.0f}".format(rf.get('mae', 0)) }}</div>
+      <div class="adm-card-sub">Rata-rata kesalahan prediksi (Rp)</div>
+    </div>
+  </div>
+
+  <div class="adm-card adm-card-accent">
+    <div class="adm-card-icon">📐</div>
+    <div>
+      <div class="adm-card-label">RMSE – Random Forest</div>
+      <div class="adm-card-val">{{ "{:,.0f}".format(rf.get('rmse', 0)) }}</div>
+      <div class="adm-card-sub">Root Mean Square Error (Rp)</div>
+    </div>
+  </div>
+
+  <div class="adm-card">
+    <div class="adm-card-icon">🗃️</div>
+    <div>
+      <div class="adm-card-label">Total Baris Data</div>
+      <div class="adm-card-val">{{ "{:,}".format(total_data) }}</div>
+      <div class="adm-card-sub">{{ tgl_awal }} – {{ tgl_akhir }}</div>
+    </div>
+  </div>
+
+  <div class="adm-card">
+    <div class="adm-card-icon">✅</div>
+    <div>
+      <div class="adm-card-label">Integritas Data</div>
+      <div class="adm-card-val">{{ integritas }}%</div>
+      <div class="adm-card-sub">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:{{ integritas }}%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Middle Row: Latih Model + Log + Dampak -->
+<div class="adm-mid-row">
+
+  <!-- Panel Pelatihan Model -->
+  <div class="adm-panel" style="flex:1.2">
+    <div class="adm-panel-head">
+      <h3>Pelatihan Model AI</h3>
+      <span class="badge-info">Konfigurasi dan jalankan algoritma</span>
+    </div>
+
+    <div class="train-algo-row">
+      <div class="train-algo-item">
+        <div class="train-algo-ikon">🌲</div>
+        <div>
+          <div class="train-algo-nama">Random Forest Regressor</div>
+          <div class="train-algo-desc">200 estimators, max_depth=20</div>
+        </div>
+        <span class="badge-green">Aktif</span>
+      </div>
+      <div class="train-algo-item">
+        <div class="train-algo-ikon">📈</div>
+        <div>
+          <div class="train-algo-nama">Linear Regression</div>
+          <div class="train-algo-desc">OLS – Ordinary Least Squares</div>
+        </div>
+        <span class="badge-green">Aktif</span>
+      </div>
+    </div>
+
+    <div class="train-status-row">
+      <div class="train-status-dot" id="train-dot"></div>
+      <div id="train-status-txt">Siap untuk dilatih ulang.</div>
+    </div>
+
+    <button id="btn-train" class="btn-train" onclick="jalankanLatih()">
+      ▶ Mulai Pelatihan Model
+    </button>
+
+    <!-- Log output -->
+    <div class="train-log" id="train-log" style="display:none;">
+      <div class="train-log-head">📋 Log Pelatihan</div>
+      <pre id="train-log-isi"></pre>
+    </div>
+  </div>
+
+  <!-- Panel Kanan: Metrik + Dampak Hari Raya -->
+  <div style="display:flex;flex-direction:column;gap:16px;flex:0.9">
+
+    <!-- Metrik Terkini -->
+    <div class="adm-panel">
+      <div class="adm-panel-head"><h3>Metrik Evaluasi Terkini</h3></div>
+      <table class="adm-tbl-metrik">
+        <thead><tr><th>Metrik</th><th>RF</th><th>LR</th></tr></thead>
+        <tbody>
+          <tr><td>MAE</td>
+            <td>Rp {{ "{:,.0f}".format(rf.get('mae',0)) }}</td>
+            <td>Rp {{ "{:,.0f}".format(lr.get('mae',0)) }}</td>
+          </tr>
+          <tr><td>RMSE</td>
+            <td>Rp {{ "{:,.0f}".format(rf.get('rmse',0)) }}</td>
+            <td>Rp {{ "{:,.0f}".format(lr.get('rmse',0)) }}</td>
+          </tr>
+          <tr><td>MAPE</td>
+            <td>{{ rf.get('mape','–') }}%</td>
+            <td>{{ lr.get('mape','–') }}%</td>
+          </tr>
+          <tr><td>R²</td>
+            <td>{{ rf.get('r2','–') }}</td>
+            <td>{{ lr.get('r2','–') }}</td>
+          </tr>
+          <tr><td>Data Latih</td>
+            <td colspan="2">{{ rf.get('data_latih','–') }} baris</td>
+          </tr>
+          <tr><td>Data Uji</td>
+            <td colspan="2">{{ rf.get('data_uji','–') }} baris</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Dampak Hari Raya Terdekat -->
+    {% if dampak_hr %}
+    <div class="adm-panel">
+      <div class="adm-panel-head"><h3>Dampak Hari Raya Terdekat</h3></div>
+      {% for item in dampak_hr %}
+      <div class="dampak-item">
+        <div class="dampak-badge">{{ item.hari_lagi }}</div>
+        <div>
+          <div class="dampak-nama">{{ item.nama }}</div>
+          <div class="dampak-tgl">{{ item.tanggal }}</div>
+        </div>
+        <div class="dampak-est">{{ item.prediksi }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Notifikasi Sistem -->
+<div class="adm-panel">
+  <div class="adm-panel-head"><h3>Notifikasi Sistem</h3></div>
+  <div class="notif-list">
+    <div class="notif-item notif-info">
+      <span class="notif-dot"></span>
+      <div>
+        <strong>Model Siap:</strong> Kedua model (Random Forest &amp; Linear Regression) berhasil dimuat dan siap digunakan untuk prediksi.
+      </div>
+    </div>
+    <div class="notif-item notif-warn">
+      <span class="notif-dot"></span>
+      <div>
+        <strong>Perhatian:</strong> Prediksi paling akurat untuk rentang 1–7 hari ke depan. Semakin jauh rentang, semakin besar potensi error.
+      </div>
+    </div>
+    <div class="notif-item notif-info">
+      <span class="notif-dot"></span>
+      <div>
+        <strong>Data Hari Raya:</strong> Pastikan kalender hari raya diperbarui setiap tahun agar akurasi fitur fase tetap optimal.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function jalankanLatih() {
+  const btn = document.getElementById('btn-train');
+  const dot = document.getElementById('train-dot');
+  const txt = document.getElementById('train-status-txt');
+  const log = document.getElementById('train-log');
+  const logIsi = document.getElementById('train-log-isi');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Sedang Melatih...';
+  dot.className = 'train-status-dot dot-running';
+  txt.textContent = 'Proses pelatihan berjalan — harap tunggu...';
+  log.style.display = 'none';
+
+  fetch('/admin/latih', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      btn.disabled = false;
+      btn.textContent = '▶ Mulai Pelatihan Model';
+      if (d.status === 'success') {
+        dot.className = 'train-status-dot dot-ok';
+        const m = d.metrics;
+        txt.textContent = `✅ Selesai! RF → MAE: ${m.random_forest.mae.toLocaleString('id-ID')} | R²: ${m.random_forest.r2}`;
+        if (d.log) {
+          log.style.display = 'block';
+          logIsi.textContent = d.log;
+        }
+        showToast('Model berhasil dilatih ulang! Refresh untuk melihat metrik terbaru.', 'success');
+        setTimeout(() => location.reload(), 2500);
+      } else {
+        dot.className = 'train-status-dot dot-err';
+        txt.textContent = '❌ Gagal: ' + d.msg;
+        showToast('Error: ' + d.msg, 'error');
+      }
+    })
+    .catch(e => {
+      btn.disabled = false;
+      btn.textContent = '▶ Mulai Pelatihan Model';
+      dot.className = 'train-status-dot dot-err';
+      txt.textContent = '❌ Koneksi error.';
+      showToast('Koneksi error: ' + e, 'error');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{
+  "random_forest": {
+    "mae": 2704.56,
+    "rmse": 4143.46,
+    "mape": 4.6,
+    "r2": 0.97,
+    "data_latih": 890,
+    "data_uji": 223
+  },
+  "linear_regression": {
+    "mae": 2354.44,
+    "rmse": 3742.67,
+    "mape": 3.99,
+    "r2": 0.9755,
+    "data_latih": 890,
+    "data_uji": 223
+  }
+}

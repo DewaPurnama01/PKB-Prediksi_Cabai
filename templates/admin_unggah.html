@@ -1,0 +1,327 @@
+{% extends "admin_base.html" %}
+{% block title %}Unggah Dataset Harga{% endblock %}
+{% block nav_adm_unggah %}active{% endblock %}
+{% block topbar_title %}Unggah Dataset Harga Harian{% endblock %}
+{% block breadcrumb %}Unggah Dataset{% endblock %}
+
+{% block content %}
+
+<div class="page-desc">
+  Perbarui basis data prediksi dengan mengunggah dataset harga cabai terbaru.
+  Format kolom harus sesuai dengan template standar sistem.
+</div>
+
+<div class="adm-two-col" style="align-items:flex-start;">
+
+  <!-- Kolom Kiri: Upload Zone -->
+  <div style="flex:1.2">
+    <div class="adm-panel">
+      <div class="adm-panel-head">
+        <h3>Unggah File Dataset</h3>
+        <a href="/admin/template_download" class="btn-secondary btn-sm">⬇ Unduh Template</a>
+      </div>
+      <p style="font-size:12.5px;color:#888;margin-bottom:16px;">
+        Pastikan format kolom sesuai dengan template. Baris kedua harus berisi data <strong>Bali</strong>.
+      </p>
+
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('inp-file').click()">
+        <div class="drop-icon" id="drop-icon">☁</div>
+        <div class="drop-text" id="drop-text">Tarik file CSV/Excel ke sini</div>
+        <div class="drop-sub" id="drop-sub">atau klik untuk memilih file</div>
+        <div class="drop-types">CSV &nbsp;·&nbsp; XLSX &nbsp;·&nbsp; XLS</div>
+        <input type="file" id="inp-file" accept=".csv,.xlsx,.xls" style="display:none;">
+      </div>
+
+      <!-- Nama file terpilih -->
+      <div id="file-info" class="file-info-bar" style="display:none;">
+        <span class="file-info-ikon">📄</span>
+        <span id="file-info-nama"></span>
+        <button onclick="resetUpload()" class="btn-reset-file">✕</button>
+      </div>
+
+      <!-- Validasi status -->
+      <div id="validasi-box" style="display:none; margin-top:12px;"></div>
+
+      <!-- Tombol Proses -->
+      <button id="btn-proses" class="btn-train" style="display:none;margin-top:16px;" onclick="prosesUpload()">
+        🔄 Proses &amp; Simpan Dataset
+      </button>
+    </div>
+
+    <!-- Tabel Pratinjau -->
+    <div class="adm-panel" id="panel-preview" style="display:none;">
+      <div class="adm-panel-head">
+        <h3>Tabel Pratinjau (10 baris pertama)</h3>
+        <div id="preview-badge"></div>
+      </div>
+      <div class="tabel-scroll">
+        <table class="adm-table" id="tbl-preview"></table>
+      </div>
+      <p id="preview-note" style="font-size:12px;color:#888;margin-top:8px;"></p>
+    </div>
+  </div>
+
+  <!-- Kolom Kanan: Validasi + Riwayat -->
+  <div style="flex:0.9;display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Panduan Format -->
+    <div class="adm-panel">
+      <div class="adm-panel-head"><h3>Panduan Format File</h3></div>
+      <div class="format-guide">
+        <div class="format-item">
+          <span class="format-icon ok">✓</span>
+          <div>Kolom pertama: <code>No</code></div>
+        </div>
+        <div class="format-item">
+          <span class="format-icon ok">✓</span>
+          <div>Kolom kedua: <code>Komoditas (Rp)</code></div>
+        </div>
+        <div class="format-item">
+          <span class="format-icon ok">✓</span>
+          <div>Kolom berikutnya: tanggal format <code>DD/MM/YYYY</code></div>
+        </div>
+        <div class="format-item">
+          <span class="format-icon ok">✓</span>
+          <div>Baris ke-2 nilai <code>Bali</code> pada kolom Komoditas</div>
+        </div>
+        <div class="format-item">
+          <span class="format-icon warn">!</span>
+          <div>Harga bertanda koma (86,700) akan dibersihkan otomatis</div>
+        </div>
+        <div class="format-item">
+          <span class="format-icon warn">!</span>
+          <div>Nilai kosong (<code>-</code>) diisi dengan interpolasi linear</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validasi Otomatis -->
+    <div class="adm-panel">
+      <div class="adm-panel-head">
+        <h3>Validasi Otomatis</h3>
+        <div id="val-status-badge" class="badge-info">Menunggu file...</div>
+      </div>
+      <div class="val-list" id="val-list">
+        <div class="val-item val-pending">⬜ Format file (CSV/XLSX)</div>
+        <div class="val-item val-pending">⬜ Kolom <code>Komoditas (Rp)</code> ada</div>
+        <div class="val-item val-pending">⬜ Minimal 100 baris data</div>
+        <div class="val-item val-pending">⬜ Tidak ada duplikat tanggal</div>
+      </div>
+    </div>
+
+    <!-- Riwayat Upload -->
+    <div class="adm-panel">
+      <div class="adm-panel-head"><h3>Riwayat Unggahan</h3></div>
+      {% if history %}
+      <div class="riwayat-list">
+        {% for item in history %}
+        <div class="riwayat-item">
+          <div>
+            <div class="riwayat-nama">{{ item.nama_file }}</div>
+            <div class="riwayat-waktu">{{ item.waktu }}</div>
+          </div>
+          <span class="riwayat-badge {{ 'badge-green' if item.status == 'Berhasil' else 'badge-red' }}">
+            {{ item.status }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state-adm" style="padding:20px;">Belum ada riwayat unggahan.</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let uploadedExt = '';
+let uploadedFilename = '';
+
+// ── Drop zone events ──
+const dropZone = document.getElementById('drop-zone');
+const inpFile  = document.getElementById('inp-file');
+
+['dragover', 'dragenter'].forEach(e => {
+  dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drop-active'); });
+});
+['dragleave', 'drop'].forEach(e => {
+  dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('drop-active'); });
+});
+dropZone.addEventListener('drop', ev => {
+  const files = ev.dataTransfer.files;
+  if (files.length > 0) handleFile(files[0]);
+});
+inpFile.addEventListener('change', () => {
+  if (inpFile.files.length > 0) handleFile(inpFile.files[0]);
+});
+
+function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['csv','xlsx','xls'].includes(ext)) {
+    setVal(['❌ Format tidak valid — harus CSV atau XLSX','⬜ Kolom Komoditas (Rp) ada','⬜ Minimal 100 baris data','⬜ Tidak ada duplikat tanggal'], 'error');
+    return;
+  }
+  document.getElementById('file-info').style.display = 'flex';
+  document.getElementById('file-info-nama').textContent = file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+  document.getElementById('drop-icon').textContent = '📄';
+  document.getElementById('drop-text').textContent = 'File dipilih';
+  document.getElementById('drop-sub').textContent = 'Klik untuk ganti file';
+
+  // Kirim ke server untuk preview
+  const fd = new FormData();
+  fd.append('file', file);
+  document.getElementById('validasi-box').style.display = 'none';
+  document.getElementById('panel-preview').style.display = 'none';
+  document.getElementById('btn-proses').style.display = 'none';
+  document.getElementById('val-status-badge').textContent = 'Memvalidasi...';
+
+  setVal(['✅ Format file (CSV/XLSX)','⏳ Memeriksa kolom...','⏳ Menghitung baris...','⏳ Cek duplikat...'], 'checking');
+
+  fetch('/admin/api/preview_upload', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status !== 'success') {
+        tampilValidasi('❌ ' + d.msg, 'error');
+        setVal(['✅ Format file (CSV/XLSX)','❌ ' + d.msg,'⬜ Minimal 100 baris data','⬜ Tidak ada duplikat tanggal'], 'error');
+        document.getElementById('val-status-badge').textContent = 'Gagal';
+        document.getElementById('val-status-badge').className = 'badge-red';
+        return;
+      }
+      uploadedExt      = d.ext;
+      uploadedFilename = d.filename;
+
+      const hasKolom   = d.valid;
+      const hasMinRows = d.total >= 100;
+      const items = [
+        '✅ Format file (CSV/XLSX)',
+        hasKolom   ? '✅ Kolom Komoditas (Rp) ada' : '❌ Kolom Komoditas (Rp) tidak ditemukan',
+        hasMinRows ? `✅ ${d.total} baris data` : `⚠ Hanya ${d.total} baris — disarankan ≥100`,
+        '✅ Validasi berhasil'
+      ];
+      setVal(items, hasKolom ? 'ok' : 'warn');
+
+      document.getElementById('val-status-badge').textContent = hasKolom ? 'Fitur Aktif' : 'Ada Peringatan';
+      document.getElementById('val-status-badge').className = hasKolom ? 'badge-green' : 'badge-warn';
+
+      if (hasKolom) {
+        tampilValidasi(`✅ File valid! ${d.total} baris ditemukan. Siap untuk diproses.`, 'success');
+        document.getElementById('btn-proses').style.display = 'block';
+      } else {
+        tampilValidasi(`⚠ Kolom wajib tidak ditemukan. Gunakan template standar.`, 'warn');
+      }
+
+      // Render preview table
+      renderPreview(d.columns, d.preview, d.total, d);
+    })
+    .catch(e => tampilValidasi('❌ Error: ' + e, 'error'));
+}
+
+function renderPreview(cols, rows, total, d) {
+  const panel = document.getElementById('panel-preview');
+  const tbl   = document.getElementById('tbl-preview');
+  const note  = document.getElementById('preview-note');
+  const badge = document.getElementById('preview-badge');
+
+  // Untuk wide format: server sudah batasi ke 8 kolom
+  const hasMore = d.total_cols && d.total_cols > cols.length;
+  let html = '<thead><tr>' + cols.map(c => `<th title="${c}">${c.length > 16 ? c.slice(0,14)+'…' : c}</th>`).join('') + (hasMore ? '<th style="color:#bbb">+' + (d.total_cols - cols.length) + ' kolom</th>' : '') + '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>' + cols.map(c => {
+      const v = String(row[c] ?? '');
+      const isNA = v === 'N/A' || v === '' || v === '-';
+      return `<td class="${isNA ? 'td-na' : ''}">${v.length > 20 ? v.slice(0,18)+'…' : v}</td>`;
+    }).join('') + (hasMore ? '<td class="td-na">…</td>' : '') + '</tr>';
+  });
+  html += '</tbody>';
+  tbl.innerHTML = html;
+
+  const summaryText = d.summary || `${total} baris`;
+  badge.innerHTML = `<span class="badge-info">${summaryText}</span>`;
+
+  let noteText = `Menampilkan 8 kolom pertama (dari ${d.total_cols || cols.length} total kolom), 10 baris pertama. `;
+  if (d.is_wide) {
+    noteText += '✔ Format wide terdeteksi — sistem akan otomatis melelehkan (melt) data menjadi format long saat diproses.';
+  } else {
+    noteText += total > 100 ? 'Data cukup untuk pelatihan.' : '⚠ Data kurang dari 100 baris.';
+  }
+  note.textContent = noteText;
+  panel.style.display = 'block';
+}
+
+function tampilValidasi(msg, type) {
+  const box = document.getElementById('validasi-box');
+  box.className = 'validasi-box validasi-' + type;
+  box.textContent = msg;
+  box.style.display = 'block';
+}
+
+function setVal(items, state) {
+  const list = document.getElementById('val-list');
+  list.innerHTML = items.map(item => {
+    const cls = item.startsWith('✅') ? 'val-ok' : item.startsWith('❌') ? 'val-err' : item.startsWith('⏳') ? 'val-checking' : item.startsWith('⚠') ? 'val-warn' : 'val-pending';
+    return `<div class="val-item ${cls}">${item}</div>`;
+  }).join('');
+}
+
+function resetUpload() {
+  document.getElementById('file-info').style.display = 'none';
+  document.getElementById('panel-preview').style.display = 'none';
+  document.getElementById('btn-proses').style.display = 'none';
+  document.getElementById('validasi-box').style.display = 'none';
+  document.getElementById('drop-icon').textContent = '☁';
+  document.getElementById('drop-text').textContent = 'Tarik file CSV/Excel ke sini';
+  document.getElementById('drop-sub').textContent = 'atau klik untuk memilih file';
+  document.getElementById('val-status-badge').textContent = 'Menunggu file...';
+  document.getElementById('val-status-badge').className = 'badge-info';
+  setVal(['⬜ Format file (CSV/XLSX)','⬜ Kolom Komoditas (Rp) ada','⬜ Minimal 100 baris data','⬜ Tidak ada duplikat tanggal'], 'pending');
+  inpFile.value = '';
+  uploadedExt = '';
+}
+
+function prosesUpload() {
+  const btn = document.getElementById('btn-proses');
+  btn.disabled = true;
+  btn.textContent = '⏳ Memproses...';
+  tampilValidasi('⏳ Sedang memproses dataset — harap tunggu...', 'checking');
+
+  fetch('/admin/api/proses_upload', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ ext: uploadedExt, filename: uploadedFilename })
+  }).then(r => r.json()).then(d => {
+    btn.disabled = false;
+    btn.textContent = '🔄 Proses & Simpan Dataset';
+    if (d.status === 'success') {
+      // Tampilkan info akumulasi jika tersedia
+      let infoAkum = '';
+      if (d.info_akumulasi) {
+        const a = d.info_akumulasi;
+        infoAkum = `
+          <div style="margin-top:12px;padding:12px;background:#f0faf5;border:1px solid #a9dfbf;border-radius:8px;font-size:12.5px;">
+            <strong>Data Akumulasi Saat Ini:</strong><br>
+            📊 Total: <strong>${a.total_baris.toLocaleString('id-ID')} baris</strong>
+            &nbsp;|&nbsp; 📅 ${a.tgl_awal} – ${a.tgl_akhir}
+            &nbsp;|&nbsp; ➕ ${a.baris_baru} baris baru ditambahkan
+          </div>`;
+      }
+      tampilValidasi('✅ ' + d.msg, 'success');
+      document.getElementById('validasi-box').innerHTML +=  infoAkum;
+      showToast('Upload berhasil! Data terakumulasi.', 'success');
+      setTimeout(() => location.reload(), 3000);
+    } else {
+      tampilValidasi('❌ Gagal: ' + d.msg, 'error');
+      showToast('Gagal: ' + d.msg, 'error');
+    }
+  }).catch(e => {
+    btn.disabled = false;
+    btn.textContent = '🔄 Proses & Simpan Dataset';
+    tampilValidasi('❌ Koneksi error: ' + e, 'error');
+  });
+}
+</script>
+{% endblock %}
